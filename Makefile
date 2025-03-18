@@ -43,4 +43,17 @@ start-container:
 stop-container:
 	docker compose stop
 
+remove-container:
+	docker compose down
+
+# Stop, remove, rebuild, and restart the container
+docker-rebuild:
+	docker compose down
+	rm -rf $(BUILD_DIR)
+	mkdir -p $(BUILD_DIR)
+	npx tsc
+	docker image rm index-bot-image
+	docker compose build
+	docker compose up -d
+
 .PHONY: install build start clean run

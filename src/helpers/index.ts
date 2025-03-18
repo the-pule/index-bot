@@ -1,16 +1,4 @@
-import fs from "fs";
+import botHelpers from "./common";
+import dbHelpers from "./db_helpers";
 
-type LogType = "info" | "error";
-
-const botHelpers = () => {
-  const logger = (message: string, type: LogType = "info") => {
-    const logMessage = `${new Date().toISOString()} [${type.toUpperCase()}] - ${message}\n`;
-    fs.appendFileSync('/app/logs/index-bot.log', logMessage, 'utf8');
-  }
-
-  return {
-    logger
-  }
-}
-
-export default botHelpers;
+export { botHelpers, dbHelpers };
