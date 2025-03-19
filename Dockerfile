@@ -4,18 +4,17 @@ FROM node:18-alpine
 # Set working directory
 WORKDIR /app
 
-# Install SQLite
-RUN apk add --no-cache sqlite
+RUN apk update
+
+# Install PostgreSQL client (to interact with DB)
+RUN apk add --no-cache postgresql-client
 
 # Copy package files and install dependencies
 COPY package.json package-lock.json ./
 RUN npm install --only=production
 
-# Create logs directory (ensure it's writable)
-RUN mkdir -p /app/logs
-
-# Ensure data directory exists
-RUN mkdir -p /app/data
+# Create necessary directories
+RUN mkdir -p /app/logs /app/data
 
 # Copy the bot's source code
 COPY . .

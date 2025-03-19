@@ -1,6 +1,7 @@
 .idea/
 node_modules/
 logs/
-.env
 dist/
 data/
+.env
+docker-compose.yml

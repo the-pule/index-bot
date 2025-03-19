@@ -16,54 +16,52 @@ const node_telegram_bot_api_1 = __importDefault(require("node-telegram-bot-api")
 const dotenv_1 = __importDefault(require("dotenv"));
 const helpers_1 = require("./helpers");
 const { logger } = (0, helpers_1.botHelpers)();
-const { debugLogger } = (0, helpers_1.dbHelpers)();
+const { loadIndex, saveIndex, debugLogger } = (0, helpers_1.dbHelpers)();
 dotenv_1.default.config();
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new node_telegram_bot_api_1.default(token, { polling: true });
 const CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID;
 // Format and update the pinned message
-// async function updatePinnedMessage() {
-//   const index = await loadIndex();
-//   debugLogger(`Loaded ${Object.keys(index).length} entries from the database.`);
-//
-//   // Sort alphabetically by caption or file name
-//   const sortedEntries = Object.values(index)
-//     .sort((a: any, b: any) => a.text.localeCompare(b.text))
-//     .map(
-//       (item: any) => `📌 [${item.text}](https://t.me/c/${CHANNEL_ID.replace("-100", "")}/${item.message_id})`
-//     )
-//     .join("\n");
-//
-//   debugLogger(`Sorted entries: ${sortedEntries}`);
-//   if (!sortedEntries) return;
-//
-//   const pinnedMessage = `🎥 **Indice dei film:**\n\n${sortedEntries}`;
-//
-//   try {
-//     // Get chat details, including pinned message (if it exists)
-//     const chat = await bot.getChat(CHANNEL_ID);
-//     const pinnedMsg = chat.pinned_message;
-//
-//     if (pinnedMsg) {
-//       logger(`Updating existing pinned message: ${pinnedMsg.message_id}`);
-//       await bot.editMessageText(pinnedMessage, {
-//         chat_id: CHANNEL_ID,
-//         message_id: pinnedMsg.message_id,
-//         parse_mode: "Markdown",
-//         disable_web_page_preview: true,
-//       });
-//     } else {
-//       logger("No pinned message found. Creating a new one.");
-//       const sentMessage = await bot.sendMessage(CHANNEL_ID, pinnedMessage, {
-//         parse_mode: "Markdown",
-//         disable_web_page_preview: true,
-//       });
-//       await bot.pinChatMessage(CHANNEL_ID, sentMessage.message_id);
-//     }
-//   } catch (error) {
-//     logger(`Error updating pinned message: ${error}`, "error");
-//   }
-// }
+function updatePinnedMessage() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const index = yield loadIndex();
+        debugLogger(`Loaded ${Object.keys(index).length} entries from the database.`);
+        // Sort alphabetically by caption or file name
+        const sortedEntries = Object.values(index)
+            .sort((a, b) => a.text.localeCompare(b.text))
+            .map((item) => `📌 [${item.text}](https://t.me/c/${CHANNEL_ID.replace("-100", "")}/${item.message_id})`)
+            .join("\n");
+        debugLogger(`Sorted entries: ${sortedEntries}`);
+        if (!sortedEntries)
+            return;
+        const pinnedMessage = `🎥 **Indice dei film:**\n\n${sortedEntries}`;
+        try {
+            // Get chat details, including pinned message (if it exists)
+            const chat = yield bot.getChat(CHANNEL_ID);
+            const pinnedMsg = chat.pinned_message;
+            if (pinnedMsg) {
+                logger(`Updating existing pinned message: ${pinnedMsg.message_id}`);
+                yield bot.editMessageText(pinnedMessage, {
+                    chat_id: CHANNEL_ID,
+                    message_id: pinnedMsg.message_id,
+                    parse_mode: "Markdown",
+                    disable_web_page_preview: true,
+                });
+            }
+            else {
+                logger("No pinned message found. Creating a new one.");
+                const sentMessage = yield bot.sendMessage(CHANNEL_ID, pinnedMessage, {
+                    parse_mode: "Markdown",
+                    disable_web_page_preview: true,
+                });
+                yield bot.pinChatMessage(CHANNEL_ID, sentMessage.message_id);
+            }
+        }
+        catch (error) {
+            logger(`Error updating pinned message: ${error}`, "error");
+        }
+    });
+}
 // Handle direct messages
 bot.on("message", (msg) => __awaiter(void 0, void 0, void 0, function* () {
     if (msg.chat.type === "private") {
@@ -93,19 +91,18 @@ bot.on("channel_post", (msg) => __awaiter(void 0, void 0, void 0, function* () {
     if (!text)
         return;
     // Create entry
-    // const index = await loadIndex();
-    // index[msg.message_id] = {
-    //   message_id: msg.message_id,
-    //   text,
-    //   date: msg.date,
-    //   sender: msg.chat.title || "Unknown",
-    // };
-    // debugLogger(`New entry added: ${text}`);
-    // logger(`New entry added: ${text}`);
-    //
-    // // Save and update pinned message
-    // saveIndex(index);
-    // debugLogger(`Index saved with ${Object.keys(index).length} entries.`);
-    // await updatePinnedMessage();
+    const index = yield loadIndex();
+    index[msg.message_id] = {
+        message_id: msg.message_id,
+        text,
+        date: msg.date,
+        sender: msg.chat.title || "Unknown",
+    };
+    debugLogger(`New entry added: ${text}`);
+    logger(`New entry added: ${text}`);
+    // Save and update pinned message
+    saveIndex(index);
+    debugLogger(`Index saved with ${Object.keys(index).length} entries.`);
+    yield updatePinnedMessage();
 }));
 logger('Bot is running...');
